@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, Suspense } from "react"
-import { signIn } from "next-auth/react"
+import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Package, Eye, EyeOff, Loader2, Shield, UserCheck } from "lucide-react"
+import { Package, Eye, EyeOff, Loader2, LogIn, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { APP_NAME, ORGANIZATION_NAME, ORGANIZATION_FULL } from "@/lib/constants"
@@ -25,35 +25,35 @@ function LoginForm() {
     setLoading(true)
 
     try {
-      const result = await signIn("credentials", {
-        email: email.trim().toLowerCase(),
-        password,
-        redirect: false,
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       })
 
-      if (result?.error) {
-        setError("Email ou senha incorretos. Verifique suas credenciais.")
-      } else {
-        window.location.href = callbackUrl
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || "Email ou senha incorretos.")
       }
-    } catch {
-      setError("Erro ao realizar login. Tente novamente.")
+
+      // Redirecionamento limpo para a URL de destino
+      window.location.href = callbackUrl
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao realizar login.")
     } finally {
       setLoading(false)
     }
   }
 
-  const fillCredentials = (userEmail: string, userPass: string) => {
-    setEmail(userEmail)
-    setPassword(userPass)
-    setError("")
-  }
-
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">
+          <label
+            htmlFor="email"
+            className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5"
+          >
             Email de Acesso
           </label>
           <Input
@@ -61,7 +61,7 @@ function LoginForm() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="seu@email.com"
+            placeholder="seu.email@exemplo.com"
             required
             autoComplete="email"
             autoFocus
@@ -69,7 +69,10 @@ function LoginForm() {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">
+          <label
+            htmlFor="password"
+            className="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5"
+          >
             Senha
           </label>
           <div className="relative">
@@ -108,48 +111,26 @@ function LoginForm() {
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              Autenticando...
+              Entrando...
             </>
           ) : (
-            "Entrar no Sistema"
+            <>
+              <LogIn className="w-4 h-4 mr-2" />
+              Entrar no Sistema
+            </>
           )}
         </Button>
       </form>
 
-      {/* Atalhos de Acesso Rápido */}
-      <div className="pt-3 border-t border-gray-100">
-        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 text-center">
-          Acesso Rápido (Contas Cadastradas)
-        </p>
-        <div className="space-y-1.5">
-          <button
-            type="button"
-            onClick={() => fillCredentials("setorbackstage@gmail.com", "02122024Dn@")}
-            className="w-full text-left p-2 rounded-lg bg-gray-50 hover:bg-blue-50 border border-gray-200/80 hover:border-blue-200 transition-colors flex items-center justify-between group"
-          >
-            <div>
-              <p className="text-xs font-bold text-gray-900 group-hover:text-blue-700">Diogo Peçanha (Criador / Admin)</p>
-              <p className="text-[10px] text-gray-500 font-mono">setorbackstage@gmail.com</p>
-            </div>
-            <span className="text-[10px] text-blue-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-              Usar →
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => fillCredentials("diretoria@ciep395.edu.br", "ciep395diretoria")}
-            className="w-full text-left p-2 rounded-lg bg-gray-50 hover:bg-blue-50 border border-gray-200/80 hover:border-blue-200 transition-colors flex items-center justify-between group"
-          >
-            <div>
-              <p className="text-xs font-bold text-gray-900 group-hover:text-blue-700">Diretoria Geral — CIEP 395</p>
-              <p className="text-[10px] text-gray-500 font-mono">diretoria@ciep395.edu.br</p>
-            </div>
-            <span className="text-[10px] text-blue-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-              Usar →
-            </span>
-          </button>
-        </div>
+      {/* Link para Registro / Criar Conta */}
+      <div className="pt-4 border-t border-gray-100 text-center">
+        <p className="text-xs text-gray-500 mb-2">Ainda não possui uma conta de acesso?</p>
+        <Link href="/register">
+          <Button variant="outline" className="w-full text-xs font-semibold">
+            <UserPlus className="w-4 h-4 mr-1.5" />
+            Criar Nova Conta / Registrar
+          </Button>
+        </Link>
       </div>
     </div>
   )
@@ -157,7 +138,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-8">
       {/* Background sutil */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-gray-50" />
 
@@ -169,7 +150,9 @@ export default function LoginPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900">{APP_NAME}</h1>
           <p className="text-sm text-gray-500 mt-1">Sistema de Gestão Patrimonial</p>
-          <p className="text-xs text-blue-600 font-semibold mt-0.5">{ORGANIZATION_NAME} • U.A. 180866</p>
+          <p className="text-xs text-blue-600 font-semibold mt-0.5">
+            {ORGANIZATION_NAME} • U.A. 180866
+          </p>
         </div>
 
         {/* Card de login */}
@@ -177,19 +160,23 @@ export default function LoginPage() {
           <div className="mb-5">
             <h2 className="text-lg font-bold text-gray-900">Entrar no Sistema</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Informe suas credenciais ou selecione seu usuário abaixo
+              Informe seu email e senha para acessar o painel
             </p>
           </div>
 
-          <Suspense fallback={<div className="h-40 flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-blue-600" /></div>}>
+          <Suspense
+            fallback={
+              <div className="h-40 flex items-center justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+              </div>
+            }
+          >
             <LoginForm />
           </Suspense>
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-gray-400 mt-6">
-          {ORGANIZATION_FULL}
-        </p>
+        <p className="text-center text-xs text-gray-400 mt-6">{ORGANIZATION_FULL}</p>
       </div>
     </div>
   )
