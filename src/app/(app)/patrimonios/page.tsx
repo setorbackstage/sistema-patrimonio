@@ -41,7 +41,7 @@ export default async function PatrimoniosPage({ searchParams }: PageProps) {
       ]
     }
 
-    const [assets, total, categories] = await Promise.all([
+    const [assets, total, categories, rooms] = await Promise.all([
       prisma.asset.findMany({
         where,
         include: {
@@ -49,6 +49,7 @@ export default async function PatrimoniosPage({ searchParams }: PageProps) {
           unit: { select: { name: true } },
           room: {
             select: {
+              id: true,
               name: true,
               floor: {
                 select: {
@@ -67,6 +68,20 @@ export default async function PatrimoniosPage({ searchParams }: PageProps) {
       prisma.assetCategory.findMany({
         orderBy: { name: "asc" },
       }),
+      prisma.room.findMany({
+        include: {
+          floor: {
+            include: {
+              building: true,
+            },
+          },
+        },
+        orderBy: [
+          { floor: { building: { name: "asc" } } },
+          { floor: { number: "asc" } },
+          { name: "asc" },
+        ],
+      }),
     ])
 
     return (
@@ -79,6 +94,7 @@ export default async function PatrimoniosPage({ searchParams }: PageProps) {
         filter={filter}
         categoryFilter={category}
         categories={categories}
+        rooms={JSON.parse(JSON.stringify(rooms))}
       />
     )
   } catch {
@@ -92,6 +108,7 @@ export default async function PatrimoniosPage({ searchParams }: PageProps) {
         filter=""
         categoryFilter=""
         categories={[]}
+        rooms={[]}
       />
     )
   }

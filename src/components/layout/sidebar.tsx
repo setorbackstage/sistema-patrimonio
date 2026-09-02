@@ -3,6 +3,7 @@
 import React, { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
@@ -16,18 +17,13 @@ import {
   Search,
   Plus,
   Upload,
-  Building2,
-  Layers,
-  DoorOpen,
   AlertTriangle,
-  Printer,
   Users,
   FolderOpen,
   LogOut,
-  Menu,
   X,
 } from "lucide-react"
-import { APP_NAME, ORGANIZATION_NAME } from "@/lib/constants"
+import { APP_NAME } from "@/lib/constants"
 
 interface NavItem {
   label: string
@@ -46,40 +42,34 @@ const navigation: NavItem[] = [
     label: "Patrimônio",
     icon: Package,
     children: [
-      { label: "Todos", href: "/patrimonios", icon: FolderOpen },
-      { label: "Cadastrar", href: "/patrimonios/novo", icon: Plus },
-      { label: "Sem localização", href: "/patrimonios?filter=sem-localizacao", icon: AlertTriangle },
-      { label: "Sem etiqueta", href: "/patrimonios?filter=sem-etiqueta", icon: Tag },
-      { label: "Importar", href: "/patrimonios/importar", icon: Upload },
+      { label: "Todos os Bens", href: "/patrimonios", icon: FolderOpen },
+      { label: "Cadastrar Novo", href: "/patrimonios/novo", icon: Plus },
+      { label: "Sem Localização", href: "/patrimonios?filter=sem-localizacao", icon: AlertTriangle },
+      { label: "Sem Etiqueta", href: "/patrimonios?filter=sem-etiqueta", icon: Tag },
+      { label: "Importar Planilha", href: "/patrimonios/importar", icon: Upload },
     ],
   },
   {
     label: "Localizações",
+    href: "/localizacoes",
     icon: MapPin,
-    children: [
-      { label: "Mapa Físico", href: "/localizacoes", icon: MapPin },
-      { label: "Prédios", href: "/localizacoes/predios", icon: Building2 },
-      { label: "Andares", href: "/localizacoes/andares", icon: Layers },
-      { label: "Salas", href: "/localizacoes/salas", icon: DoorOpen },
-    ],
   },
   {
     label: "Inventário",
     icon: ClipboardCheck,
     children: [
-      { label: "Novo inventário", href: "/inventario/novo" },
-      { label: "Em andamento", href: "/inventario?status=em-andamento" },
-      { label: "Concluídos", href: "/inventario?status=concluido" },
-      { label: "Divergências", href: "/inventario?status=divergencias" },
+      { label: "Painel de Inventário", href: "/inventario" },
+      { label: "Novo Inventário", href: "/inventario/novo" },
+      { label: "Em Andamento", href: "/inventario?status=IN_PROGRESS" },
+      { label: "Concluídos", href: "/inventario?status=COMPLETED" },
     ],
   },
   {
     label: "Etiquetas",
     icon: Tag,
     children: [
-      { label: "Estação de etiquetagem", href: "/etiquetas" },
-      { label: "Impressão em lote", href: "/etiquetas/lote" },
-      { label: "Modelos", href: "/etiquetas/modelos" },
+      { label: "Estação de Etiquetagem", href: "/etiquetas" },
+      { label: "Impressão em Lote", href: "/etiquetas/lote" },
     ],
   },
   {
@@ -91,8 +81,8 @@ const navigation: NavItem[] = [
     label: "Administração",
     icon: Settings,
     children: [
-      { label: "Usuários", href: "/admin/usuarios", icon: Users },
-      { label: "Categorias", href: "/admin/categorias" },
+      { label: "Usuários e Acessos", href: "/admin/usuarios", icon: Users },
+      { label: "Categorias SIAF", href: "/admin/categorias" },
       { label: "Configurações", href: "/admin/configuracoes" },
     ],
   },
@@ -107,7 +97,12 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose, userName, userRole }: SidebarProps) {
   const pathname = usePathname()
-  const [expandedItems, setExpandedItems] = useState<string[]>(["Patrimônio"])
+  const [expandedItems, setExpandedItems] = useState<string[]>([
+    "Patrimônio",
+    "Inventário",
+    "Etiquetas",
+    "Administração",
+  ])
 
   const toggleExpanded = (label: string) => {
     setExpandedItems((prev) =>
@@ -137,12 +132,12 @@ export function Sidebar({ isOpen, onClose, userName, userRole }: SidebarProps) {
         {/* Logo / Header */}
         <div className="flex items-center justify-between px-4 h-16 border-b border-gray-200 shrink-0">
           <Link href="/dashboard" className="flex items-center gap-2.5" onClick={onClose}>
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-sm">
               <Package className="w-4.5 h-4.5 text-white" />
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-bold text-gray-900 leading-tight">{APP_NAME}</span>
-              <span className="text-[10px] text-gray-400 leading-tight">Gestão Patrimonial</span>
+              <span className="text-[10px] text-gray-400 leading-tight">CIEP 395 • SEEDUC-RJ</span>
             </div>
           </Link>
           <button
@@ -180,7 +175,7 @@ export function Sidebar({ isOpen, onClose, userName, userRole }: SidebarProps) {
                     className={cn(
                       "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                       isActive(item.href)
-                        ? "bg-blue-50 text-blue-700"
+                        ? "bg-blue-50 text-blue-700 font-semibold"
                         : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                     )}
                   >
@@ -194,7 +189,7 @@ export function Sidebar({ isOpen, onClose, userName, userRole }: SidebarProps) {
                       className={cn(
                         "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                         item.children?.some((c) => isActive(c.href))
-                          ? "text-blue-700"
+                          ? "text-blue-700 font-semibold"
                           : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                       )}
                     >
@@ -217,7 +212,7 @@ export function Sidebar({ isOpen, onClose, userName, userRole }: SidebarProps) {
                               className={cn(
                                 "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",
                                 isActive(child.href)
-                                  ? "bg-blue-50 text-blue-700 font-medium"
+                                  ? "bg-blue-50 text-blue-700 font-semibold"
                                   : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
                               )}
                             >
@@ -237,23 +232,22 @@ export function Sidebar({ isOpen, onClose, userName, userRole }: SidebarProps) {
 
         {/* Usuário / Footer */}
         <div className="border-t border-gray-200 p-3 shrink-0">
-          <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold text-sm">
+          <div className="flex items-center gap-3 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
+            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
               {userName?.charAt(0)?.toUpperCase() || "A"}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{userName || "Administrador"}</p>
-              <p className="text-xs text-gray-500 truncate">{userRole || "Admin"}</p>
+              <p className="text-xs font-bold text-gray-900 truncate">{userName || "Administrador"}</p>
+              <p className="text-[10px] text-blue-600 font-semibold uppercase truncate">{userRole || "Admin"}</p>
             </div>
-            <form action="/api/auth/signout" method="POST">
-              <button
-                type="submit"
-                className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                title="Sair"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </form>
+            <button
+              type="button"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+              title="Encerrar sessão"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </aside>
