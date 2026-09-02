@@ -1,0 +1,11 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "prisma generate && next build",
+  "env": {
+    "DATABASE_URL": "postgresql://postgres:ktKdSi4Sogjuecbc@db.tsysjcurvxzfzflpafkw.supabase.co:6543/postgres?pgbouncer=true&connection_limit=1",
+    "DIRECT_URL": "postgresql://postgres:ktKdSi4Sogjuecbc@db.tsysjcurvxzfzflpafkw.supabase.co:5432/postgres",
+    "AUTH_SECRET": "ciep395-patrimonio-secure-key-2026-seeduc",
+    "AUTH_TRUST_HOST": "true",
+    "NEXTAUTH_SECRET": "ciep395-patrimonio-secure-key-2026-seeduc"
+  }
+}
