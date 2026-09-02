@@ -62,20 +62,51 @@ async function main() {
   }
   console.log(`✅ ${SIAF_CATEGORIES.length} categorias criadas`)
 
-  // 4. Criar usuário administrador
-  const passwordHash = await hash("admin123", 12)
+  // 4. Criar usuários do sistema
+  const adminHash = await hash("admin123", 12)
+  const diretoriaHash = await hash("ciep395diretoria", 12)
+  const operadorHash = await hash("operador123", 12)
+
   const admin = await prisma.user.upsert({
     where: { email: "admin@ciep395.edu.br" },
     update: {},
     create: {
       organizationId: org.id,
-      name: "Administrador",
+      name: "Administrador do Sistema",
       email: "admin@ciep395.edu.br",
-      passwordHash,
+      passwordHash: adminHash,
       role: "ADMIN",
     },
   })
-  console.log(`✅ Usuário admin: ${admin.email} (senha: admin123)`)
+
+  const diretoria = await prisma.user.upsert({
+    where: { email: "diretoria@ciep395.edu.br" },
+    update: {},
+    create: {
+      organizationId: org.id,
+      name: "Diretoria Geral - CIEP 395",
+      email: "diretoria@ciep395.edu.br",
+      passwordHash: diretoriaHash,
+      role: "ADMIN",
+    },
+  })
+
+  const operador = await prisma.user.upsert({
+    where: { email: "operador@ciep395.edu.br" },
+    update: {},
+    create: {
+      organizationId: org.id,
+      name: "Agente de Patrimônio",
+      email: "operador@ciep395.edu.br",
+      passwordHash: operadorHash,
+      role: "OPERATOR",
+    },
+  })
+
+  console.log(`✅ Usuários criados:`)
+  console.log(`   - ${admin.email} (ADMIN)`)
+  console.log(`   - ${diretoria.email} (ADMIN - Diretoria Geral)`)
+  console.log(`   - ${operador.email} (OPERATOR - Agente de Patrimônio)`)
 
   // 5. Criar prédio e andares iniciais
   const building = await prisma.building.upsert({
