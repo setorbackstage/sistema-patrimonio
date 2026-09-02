@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Login API Error:", error)
-    return NextResponse.json({ error: "Erro interno no servidor de autenticação" }, { status: 500 })
+    const message = error instanceof Error ? error.message : "Erro interno no servidor"
+    return NextResponse.json({ error: `Erro no login: ${message}` }, { status: 500 })
   }
 }
