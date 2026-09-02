@@ -1,0 +1,502 @@
+// ==============================================
+// PRISMA SCHEMA — SISTEMA DE GESTÃO PATRIMONIAL
+// CIEP 395 – Luiz Henrique Rezende Novaes
+// ==============================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────
+// ORGANIZAÇÃO
+// ─────────────────────────────────────────
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  code      String?  @unique
+  logoUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  units Unit[]
+  users User[]
+}
+
+// ─────────────────────────────────────────
+// HIERARQUIA FÍSICA
+// ─────────────────────────────────────────
+
+model Unit {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  code           String?
+  address        String?
+  phone          String?
+  responsibleId  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  responsible  User?        @relation("UnitResponsible", fields: [responsibleId], references: [id])
+  buildings    Building[]
+  assets       Asset[]
+  inventories  Inventory[]
+}
+
+model Building {
+  id          String   @id @default(cuid())
+  unitId      String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  unit   Unit    @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  floors Floor[]
+}
+
+model Floor {
+  id         String   @id @default(cuid())
+  buildingId String
+  name       String
+  number     Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  building Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  rooms    Room[]
+}
+
+model Room {
+  id            String   @id @default(cuid())
+  floorId       String
+  name          String
+  number        String?
+  type          RoomType @default(OTHER)
+  responsible   String?
+  responsibleId String?
+  capacity      Int?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  floor              Floor           @relation(fields: [floorId], references: [id], onDelete: Cascade)
+  responsibleUser    User?           @relation("RoomResponsible", fields: [responsibleId], references: [id])
+  assets             Asset[]
+  movementsFrom      AssetMovement[] @relation("MovementsFrom")
+  movementsTo        AssetMovement[] @relation("MovementsTo")
+  inventoryFoundItems InventoryItem[]
+}
+
+enum RoomType {
+  CLASSROOM
+  SECRETARY
+  PRINCIPAL_OFFICE
+  COORDINATION
+  TEACHERS_ROOM
+  LABORATORY
+  COMPUTER_LAB
+  STORAGE
+  LIBRARY
+  KITCHEN
+  CAFETERIA
+  DEPOSIT
+  PATIO
+  BATHROOM
+  CORRIDOR
+  AUDITORIUM
+  SPORTS_COURT
+  INFIRMARY
+  OTHER
+}
+
+// ─────────────────────────────────────────
+// CATEGORIAS
+// ─────────────────────────────────────────
+
+model AssetCategory {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assets Asset[]
+}
+
+// ─────────────────────────────────────────
+// PATRIMÔNIO (ASSET)
+// ─────────────────────────────────────────
+
+model Asset {
+  id String @id @default(cuid())
+
+  // Identificadores
+  patrimonyNumber String  @unique
+  barcode         String? @unique
+
+  // Dados básicos
+  description      String
+  categoryId       String?
+  brand            String?
+  model            String?
+  serialNumber     String?
+  unitOfMeasure    String?  @default("Unid")
+  quantity         Int      @default(1)
+  unitValue        Decimal  @db.Decimal(12, 2)
+  totalValue       Decimal  @db.Decimal(12, 2)
+  specificLocation String?
+  notes            String?
+  importNotes      String?
+
+  // Localização
+  unitId         String?
+  roomId         String?
+  locationDetail String?
+
+  // Responsável
+  responsibleId String?
+
+  // Status e estado
+  status    AssetStatus    @default(ACTIVE)
+  condition AssetCondition @default(NOT_EVALUATED)
+
+  // Etiqueta
+  labelStatus LabelStatus @default(NOT_GENERATED)
+
+  // Origem / auditoria
+  importSource String?
+  importedAt   DateTime?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  createdById String?
+  updatedById String?
+
+  // Relações
+  category    AssetCategory? @relation(fields: [categoryId], references: [id])
+  unit        Unit?          @relation(fields: [unitId], references: [id])
+  room        Room?          @relation(fields: [roomId], references: [id])
+  responsible User?          @relation("AssetResponsible", fields: [responsibleId], references: [id])
+  createdBy   User?          @relation("AssetCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User?          @relation("AssetUpdatedBy", fields: [updatedById], references: [id])
+
+  labels         AssetLabel[]
+  movements      AssetMovement[]
+  inventoryItems InventoryItem[]
+  auditLogs      AuditLog[]
+
+  @@index([patrimonyNumber])
+  @@index([unitId])
+  @@index([roomId])
+  @@index([status])
+  @@index([categoryId])
+  @@index([deletedAt])
+}
+
+enum AssetStatus {
+  ACTIVE
+  INACTIVE
+  DISPOSED
+  TRANSFERRED
+  LOST
+  UNDER_MAINTENANCE
+}
+
+enum AssetCondition {
+  EXCELLENT
+  GOOD
+  REGULAR
+  BAD
+  DAMAGED
+  SCRAPPED
+  NOT_EVALUATED
+}
+
+enum LabelStatus {
+  NOT_GENERATED
+  GENERATED
+  PRINTED
+  APPLIED
+  DAMAGED_LABEL
+  REPLACED
+}
+
+// ─────────────────────────────────────────
+// ETIQUETAS
+// ─────────────────────────────────────────
+
+model AssetLabel {
+  id      String @id @default(cuid())
+  assetId String
+
+  labelCode String    @unique
+  labelType LabelType @default(BOTH)
+  modelName String?
+  version   Int       @default(1)
+
+  status      LabelStatus @default(GENERATED)
+  generatedAt DateTime    @default(now())
+  printedAt   DateTime?
+  appliedAt   DateTime?
+
+  printedById String?
+  printedBy   User?   @relation(fields: [printedById], references: [id])
+  printCount  Int     @default(0)
+
+  notes        String?
+  replacedById String?
+
+  asset Asset @relation(fields: [assetId], references: [id])
+
+  @@index([assetId])
+  @@index([labelCode])
+}
+
+enum LabelType {
+  BARCODE_ONLY
+  QR_ONLY
+  BOTH
+}
+
+// ─────────────────────────────────────────
+// MOVIMENTAÇÕES
+// ─────────────────────────────────────────
+
+model AssetMovement {
+  id      String @id @default(cuid())
+  assetId String
+
+  fromUnitId String?
+  fromRoomId String?
+  fromDetail String?
+
+  toUnitId String?
+  toRoomId String?
+  toDetail String?
+
+  reason String?
+  notes  String?
+
+  movedAt   DateTime @default(now())
+  movedById String?
+
+  asset    Asset @relation(fields: [assetId], references: [id])
+  movedBy  User? @relation(fields: [movedById], references: [id])
+  fromRoom Room? @relation("MovementsFrom", fields: [fromRoomId], references: [id])
+  toRoom   Room? @relation("MovementsTo", fields: [toRoomId], references: [id])
+
+  @@index([assetId])
+  @@index([movedAt])
+}
+
+// ─────────────────────────────────────────
+// INVENTÁRIO
+// ─────────────────────────────────────────
+
+model Inventory {
+  id          String   @id @default(cuid())
+  title       String
+  name        String?
+  year        Int      @default(2026)
+  description String?
+  notes       String?
+
+  scope  InventoryScope  @default(UNIT)
+  unitId String?
+
+  status String @default("IN_PROGRESS")
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  createdById   String?
+  responsibleId String?
+
+  unit        Unit?           @relation(fields: [unitId], references: [id])
+  createdBy   User?           @relation("InventoryCreatedBy", fields: [createdById], references: [id])
+  responsible User?           @relation("InventoryResponsible", fields: [responsibleId], references: [id])
+  items       InventoryItem[]
+
+  @@index([unitId])
+  @@index([status])
+}
+
+enum InventoryScope {
+  ORGANIZATION
+  UNIT
+  BUILDING
+  FLOOR
+  ROOM
+}
+
+enum InventoryStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model InventoryItem {
+  id          String @id @default(cuid())
+  inventoryId String
+  assetId     String
+
+  status       String          @default("MISSING")
+  result       InventoryResult @default(NOT_CHECKED)
+  condition    AssetCondition?
+  foundRoomId  String?
+
+  foundAt      String?
+  expectedAt   String?
+
+  notes        String?
+  method       String?
+  checkedAt    DateTime?
+  checkedById  String?
+  verifiedAt   DateTime?
+  verifiedById String?
+
+  inventory  Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  asset      Asset     @relation(fields: [assetId], references: [id])
+  checkedBy  User?     @relation("ItemCheckedBy", fields: [checkedById], references: [id])
+  verifiedBy User?     @relation("ItemVerifiedBy", fields: [verifiedById], references: [id])
+  foundRoom  Room?     @relation(fields: [foundRoomId], references: [id])
+
+  @@unique([inventoryId, assetId])
+  @@index([inventoryId])
+  @@index([assetId])
+  @@index([result])
+}
+
+enum InventoryResult {
+  NOT_CHECKED
+  FOUND
+  NOT_FOUND
+  DIVERGENT
+  DAMAGED
+  NO_LABEL
+  MOVED
+}
+
+// ─────────────────────────────────────────
+// USUÁRIOS E AUTENTICAÇÃO
+// ─────────────────────────────────────────
+
+model User {
+  id             String   @id @default(cuid())
+  organizationId String?
+  name           String
+  email          String   @unique
+  passwordHash   String
+  role           String   @default("OPERATOR")
+
+  isActive    Boolean   @default(true)
+  lastLoginAt DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
+
+  // Responsabilidades
+  unitResponsibilities Unit[] @relation("UnitResponsible")
+  roomResponsibilities Room[] @relation("RoomResponsible")
+
+  // Patrimônios
+  responsibleAssets Asset[] @relation("AssetResponsible")
+  createdAssets     Asset[] @relation("AssetCreatedBy")
+  updatedAssets     Asset[] @relation("AssetUpdatedBy")
+
+  // Etiquetas
+  printedLabels AssetLabel[]
+
+  // Movimentações
+  movements AssetMovement[]
+
+  // Inventário
+  createdInventories     Inventory[]     @relation("InventoryCreatedBy")
+  responsibleInventories Inventory[]     @relation("InventoryResponsible")
+  checkedInventoryItems  InventoryItem[] @relation("ItemCheckedBy")
+  verifiedInventoryItems InventoryItem[] @relation("ItemVerifiedBy")
+
+  // Auditoria
+  auditLogs AuditLog[]
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  OPERATOR
+  VIEWER
+}
+
+// ─────────────────────────────────────────
+// AUDITORIA
+// ─────────────────────────────────────────
+
+model AuditLog {
+  id      String  @id @default(cuid())
+  assetId String?
+  userId  String?
+
+  action   String
+  entity   String
+  entityId String?
+
+  oldData Json?
+  newData Json?
+
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  asset Asset? @relation(fields: [assetId], references: [id])
+  user  User?  @relation(fields: [userId], references: [id])
+
+  @@index([assetId])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ─────────────────────────────────────────
+// IMPORTAÇÃO
+// ─────────────────────────────────────────
+
+model ImportLog {
+  id       String  @id @default(cuid())
+  filename String
+  status   String  @default("PENDING")
+
+  totalRows     Int @default(0)
+  importedRows  Int @default(0)
+  duplicateRows Int @default(0)
+  invalidRows   Int @default(0)
+  ignoredRows   Int @default(0)
+
+  errors Json?
+
+  importedById String?
+  startedAt    DateTime  @default(now())
+  completedAt  DateTime?
+}
+
+enum ImportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  COMPLETED_WITH_ERRORS
+  FAILED
+}

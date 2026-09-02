@@ -1,0 +1,214 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* =========================================
+   SISTEMA DE GESTÃO PATRIMONIAL — CIEP 395
+   Design System CSS
+   ========================================= */
+
+@layer base {
+  :root {
+    --sidebar-width: 260px;
+    --header-height: 64px;
+    --mobile-nav-height: 64px;
+  }
+
+  * {
+    @apply border-gray-200;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+
+  /* Scrollbar customizada */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
+}
+
+@layer components {
+  /* Layout */
+  .sidebar {
+    width: var(--sidebar-width);
+    @apply fixed left-0 top-0 h-full bg-white border-r border-gray-200 z-40;
+    @apply flex flex-col;
+    @apply transition-transform duration-300 ease-in-out;
+  }
+
+  .sidebar-collapsed {
+    @apply -translate-x-full;
+  }
+
+  .main-content {
+    @apply min-h-screen;
+    margin-left: var(--sidebar-width);
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .main-header {
+    height: var(--header-height);
+    @apply sticky top-0 bg-white/80 backdrop-blur-md border-b border-gray-200 z-30;
+    @apply flex items-center px-6;
+  }
+
+  /* Cards de estatísticas */
+  .stat-card {
+    @apply rounded-xl border border-gray-200 bg-white p-6 shadow-sm;
+    @apply transition-all duration-200 hover:shadow-md hover:border-gray-300;
+  }
+
+  .stat-card-value {
+    @apply text-2xl font-bold text-gray-900 mt-2;
+  }
+
+  .stat-card-label {
+    @apply text-sm font-medium text-gray-500;
+  }
+
+  /* Tabelas */
+  .data-table {
+    @apply w-full text-sm;
+  }
+
+  .data-table thead {
+    @apply bg-gray-50 border-b border-gray-200;
+  }
+
+  .data-table th {
+    @apply px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider;
+  }
+
+  .data-table td {
+    @apply px-4 py-3 border-b border-gray-100;
+  }
+
+  .data-table tbody tr {
+    @apply transition-colors duration-150 hover:bg-gray-50;
+  }
+
+  /* Mobile */
+  @media (max-width: 1023px) {
+    .sidebar {
+      @apply -translate-x-full;
+    }
+
+    .sidebar.sidebar-open {
+      @apply translate-x-0;
+    }
+
+    .main-content {
+      margin-left: 0;
+    }
+  }
+
+  /* Mobile bottom nav */
+  .mobile-nav {
+    height: var(--mobile-nav-height);
+    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40;
+    @apply flex items-center justify-around px-2;
+    @apply lg:hidden;
+  }
+
+  .mobile-nav-item {
+    @apply flex flex-col items-center justify-center gap-0.5 py-1 px-2;
+    @apply text-gray-500 transition-colors duration-150;
+    @apply rounded-lg min-w-[56px];
+  }
+
+  .mobile-nav-item.active {
+    @apply text-blue-600;
+  }
+
+  .mobile-nav-item:hover {
+    @apply text-gray-700 bg-gray-50;
+  }
+
+  /* Page header */
+  .page-header {
+    @apply mb-6;
+  }
+
+  .page-title {
+    @apply text-2xl font-bold text-gray-900;
+  }
+
+  .page-subtitle {
+    @apply text-sm text-gray-500 mt-1;
+  }
+
+  /* Search bar */
+  .search-bar {
+    @apply relative;
+  }
+
+  .search-bar input {
+    @apply w-full h-11 pl-10 pr-4 rounded-lg border border-gray-300 bg-white;
+    @apply text-sm text-gray-900 placeholder:text-gray-400;
+    @apply focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none;
+    @apply transition-colors duration-200;
+  }
+
+  .search-bar .search-icon {
+    @apply absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none;
+  }
+
+  /* Skeleton loading */
+  .skeleton {
+    @apply bg-gray-200 rounded animate-pulse;
+  }
+
+  /* Empty state */
+  .empty-state {
+    @apply flex flex-col items-center justify-center py-16 text-center;
+  }
+
+  .empty-state-icon {
+    @apply w-16 h-16 text-gray-300 mb-4;
+  }
+
+  .empty-state-title {
+    @apply text-lg font-semibold text-gray-500 mb-2;
+  }
+
+  .empty-state-description {
+    @apply text-sm text-gray-400 max-w-sm;
+  }
+
+  /* Status dots */
+  .status-dot {
+    @apply w-2 h-2 rounded-full inline-block mr-2;
+  }
+
+  .status-dot-active { @apply bg-emerald-500; }
+  .status-dot-inactive { @apply bg-gray-400; }
+  .status-dot-danger { @apply bg-red-500; }
+  .status-dot-warning { @apply bg-amber-500; }
+
+  /* Overlay para mobile sidebar */
+  .sidebar-overlay {
+    @apply fixed inset-0 bg-black/50 z-30 lg:hidden;
+    @apply transition-opacity duration-300;
+  }
+}
+
+@layer utilities {
+  /* Padding bottom para mobile nav */
+  .pb-mobile-nav {
+    @apply pb-20 lg:pb-0;
+  }
+}
