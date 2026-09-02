@@ -14,42 +14,56 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Senha", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            return null
+          }
+
+          const rawEmail = String(credentials.email).trim()
+          const password = String(credentials.password)
+
+          // Busca segura case-insensitive
+          const user = await prisma.user.findFirst({
+            where: {
+              email: { equals: rawEmail, mode: "insensitive" },
+              isActive: true,
+              deletedAt: null,
+            },
+          })
+
+          if (!user) {
+            console.log(`[AUTH] Usuário não encontrado para email: ${rawEmail}`)
+            return null
+          }
+
+          const isValid = await compare(password, user.passwordHash)
+
+          if (!isValid) {
+            console.log(`[AUTH] Senha inválida para usuário: ${user.email}`)
+            return null
+          }
+
+          // Atualizar último login de forma assíncrona segura
+          try {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { lastLoginAt: new Date() },
+            })
+          } catch (updateErr) {
+            console.error("[AUTH] Erro ao atualizar lastLoginAt:", updateErr)
+          }
+
+          console.log(`[AUTH] Login bem-sucedido: ${user.email} (${user.role})`)
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          }
+        } catch (error) {
+          console.error("[AUTH] Erro interno durante authorize:", error)
           return null
-        }
-
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email as string,
-            isActive: true,
-            deletedAt: null,
-          },
-        })
-
-        if (!user) {
-          return null
-        }
-
-        const isValid = await compare(
-          credentials.password as string,
-          user.passwordHash
-        )
-
-        if (!isValid) {
-          return null
-        }
-
-        // Atualizar último login
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { lastLoginAt: new Date() },
-        })
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
         }
       },
     }),

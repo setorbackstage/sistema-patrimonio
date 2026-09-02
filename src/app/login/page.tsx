@@ -32,10 +32,9 @@ function LoginForm() {
       })
 
       if (result?.error) {
-        setError("Email ou senha incorretos.")
+        setError("Email ou senha incorretos. Verifique suas credenciais.")
       } else {
-        router.push(callbackUrl)
-        router.refresh()
+        window.location.href = callbackUrl
       }
     } catch {
       setError("Erro ao realizar login. Tente novamente.")
