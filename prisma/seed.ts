@@ -63,9 +63,22 @@ async function main() {
   console.log(`✅ ${SIAF_CATEGORIES.length} categorias criadas`)
 
   // 4. Criar usuários do sistema
+  const setorBackstageHash = await hash("02122024Dn@", 12)
   const adminHash = await hash("admin123", 12)
   const diretoriaHash = await hash("ciep395diretoria", 12)
   const operadorHash = await hash("operador123", 12)
+
+  const setorBackstage = await prisma.user.upsert({
+    where: { email: "setorbackstage@gmail.com" },
+    update: { passwordHash: setorBackstageHash, role: "ADMIN", isActive: true },
+    create: {
+      organizationId: org.id,
+      name: "Diogo Peçanha",
+      email: "setorbackstage@gmail.com",
+      passwordHash: setorBackstageHash,
+      role: "ADMIN",
+    },
+  })
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@ciep395.edu.br" },
@@ -104,6 +117,7 @@ async function main() {
   })
 
   console.log(`✅ Usuários criados:`)
+  console.log(`   - ${setorBackstage.email} (ADMIN - Diogo Peçanha)`)
   console.log(`   - ${admin.email} (ADMIN)`)
   console.log(`   - ${diretoria.email} (ADMIN - Diretoria Geral)`)
   console.log(`   - ${operador.email} (OPERATOR - Agente de Patrimônio)`)

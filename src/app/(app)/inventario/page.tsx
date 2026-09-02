@@ -16,8 +16,13 @@ export default async function InventarioPage({ searchParams }: PageProps) {
   const statusFilter = params.status || ""
 
   const where: Record<string, unknown> = {}
-  if (statusFilter === "em-andamento") where.status = "IN_PROGRESS"
-  if (statusFilter === "concluido") where.status = "COMPLETED"
+  if (statusFilter === "em-andamento" || statusFilter === "IN_PROGRESS") {
+    where.status = "IN_PROGRESS"
+  } else if (statusFilter === "concluido" || statusFilter === "COMPLETED") {
+    where.status = "COMPLETED"
+  } else if (statusFilter === "planejado" || statusFilter === "PLANNED") {
+    where.status = "PLANNED"
+  }
 
   const inventories = await prisma.inventory.findMany({
     where,
