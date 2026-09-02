@@ -2,6 +2,8 @@ import { Metadata } from "next"
 import prisma from "@/lib/prisma"
 import { DashboardContent } from "./dashboard-content"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Dashboard – SisPatrimônio",
   description: "Painel de controle patrimonial",

@@ -2,6 +2,8 @@ import { Metadata } from "next"
 import prisma from "@/lib/prisma"
 import { PatrimoniosContent } from "./patrimonios-content"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Patrimônios – SisPatrimônio",
   description: "Lista de patrimônios do CIEP 395",

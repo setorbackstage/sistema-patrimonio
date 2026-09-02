@@ -3,6 +3,8 @@ import { redirect } from "next/navigation"
 import { DashboardLayoutClient } from "./layout-client"
 import { USER_ROLE_MAP } from "@/lib/constants"
 
+export const dynamic = "force-dynamic"
+
 export default async function DashboardLayout({
   children,
 }: {

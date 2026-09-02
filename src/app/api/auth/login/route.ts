@@ -5,9 +5,30 @@ import { setSessionCookie } from "@/lib/session"
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const email = String(body.email || "").trim()
-    const password = String(body.password || "")
+    let email = ""
+    let password = ""
+
+    const contentType = request.headers.get("content-type") || ""
+    if (contentType.includes("application/json")) {
+      const body = await request.json()
+      email = String(body.email || "").trim()
+      password = String(body.password || "")
+    } else if (contentType.includes("form") || contentType.includes("urlencoded")) {
+      const formData = await request.formData()
+      email = String(formData.get("email") || "").trim()
+      password = String(formData.get("password") || "")
+    } else {
+      const text = await request.text()
+      try {
+        const body = JSON.parse(text)
+        email = String(body.email || "").trim()
+        password = String(body.password || "")
+      } catch {
+        const params = new URLSearchParams(text)
+        email = String(params.get("email") || "").trim()
+        password = String(params.get("password") || "")
+      }
+    }
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email e senha são obrigatórios" }, { status: 400 })

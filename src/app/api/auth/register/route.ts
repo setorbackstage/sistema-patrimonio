@@ -5,11 +5,40 @@ import { setSessionCookie } from "@/lib/session"
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const name = String(body.name || "").trim()
-    const email = String(body.email || "").trim().toLowerCase()
-    const password = String(body.password || "")
-    const role = body.role === "ADMIN" ? "ADMIN" : "OPERATOR"
+    let name = ""
+    let email = ""
+    let password = ""
+    let role = "OPERATOR"
+
+    const contentType = request.headers.get("content-type") || ""
+    if (contentType.includes("application/json")) {
+      const body = await request.json()
+      name = String(body.name || "").trim()
+      email = String(body.email || "").trim().toLowerCase()
+      password = String(body.password || "")
+      role = body.role === "ADMIN" ? "ADMIN" : "OPERATOR"
+    } else if (contentType.includes("form") || contentType.includes("urlencoded")) {
+      const formData = await request.formData()
+      name = String(formData.get("name") || "").trim()
+      email = String(formData.get("email") || "").trim().toLowerCase()
+      password = String(formData.get("password") || "")
+      role = formData.get("role") === "ADMIN" ? "ADMIN" : "OPERATOR"
+    } else {
+      const text = await request.text()
+      try {
+        const body = JSON.parse(text)
+        name = String(body.name || "").trim()
+        email = String(body.email || "").trim().toLowerCase()
+        password = String(body.password || "")
+        role = body.role === "ADMIN" ? "ADMIN" : "OPERATOR"
+      } catch {
+        const params = new URLSearchParams(text)
+        name = String(params.get("name") || "").trim()
+        email = String(params.get("email") || "").trim().toLowerCase()
+        password = String(params.get("password") || "")
+        role = params.get("role") === "ADMIN" ? "ADMIN" : "OPERATOR"
+      }
+    }
 
     if (!name || !email || !password) {
       return NextResponse.json(
