@@ -8,12 +8,11 @@ const globalForPrisma = globalThis as unknown as {
 // Fallback para DATABASE_URL se definida (local ou outra env)
 const getDatabaseUrl = () => {
   const envUrl = process.env.DATABASE_URL
-  // Se já está configurada com a porta correta, usa ela
-  if (envUrl && (envUrl.includes(':6543') || envUrl.includes('pgbouncer=true'))) {
+  if (envUrl && envUrl.includes('aws-0-')) {
     return envUrl
   }
-  // Força a URL do pooler para garantir compatibilidade com a Vercel
-  return 'postgresql://postgres:ktKdSi4Sogjuecbc@db.tsysjcurvxzfzflpafkw.supabase.co:6543/postgres?pgbouncer=true&connection_limit=1'
+  // URL of the transaction pooler (IPv4 compatible, required for Vercel)
+  return 'postgresql://postgres.tsysjcurvxzfzflpafkw:ktKdSi4Sogjuecbc@aws-0-us-east-2.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1'
 }
 
 export const prisma =
