@@ -1,19 +1,17 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import QRCode from "qrcode"
-import JsBarcode from "jsbarcode"
 import {
   Printer,
   Search,
   Tag,
-  Settings2,
-  CheckCircle2,
   Sliders,
   Layers,
-  ArrowRight,
-  Package,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
+  Check,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -24,7 +22,7 @@ import {
   DEFAULT_LABEL_CONFIG,
   LABEL_SIZES,
 } from "@/lib/label-templates"
-import { ORGANIZATION_NAME } from "@/lib/constants"
+import { PatrimonioLabel } from "@/components/labels/patrimonio-label"
 
 interface Asset {
   id: string
@@ -44,54 +42,30 @@ interface Props {
 }
 
 export function EtiquetasContent({ initialAsset, autoPrint }: Props) {
-  const [asset, setAsset] = useState<Asset | null>(initialAsset)
+  const [asset, setAsset] = useState<Asset | null>(
+    initialAsset || {
+      id: "demo-1",
+      patrimonyNumber: "000001",
+      description: "BOMBA DE ÁGUA DANCOR 30CV TRIFÁSICA",
+      categoryId: null,
+      category: { name: "MÁQUINAS E EQUIPAMENTOS ENERGÉTICOS", code: "1.2.3.1.1.01.20" },
+      room: { name: "CASA DE BOMBAS", floor: { name: "Térreo", building: { name: "Prédio Principal" } } },
+    }
+  )
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<Asset[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
   const [config, setConfig] = useState<LabelConfig>(DEFAULT_LABEL_CONFIG)
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>("")
-  const barcodeRef = useRef<SVGSVGElement>(null)
-
-  // Gerar QR Code e Barcode sempre que o patrimônio ou config mudar
-  useEffect(() => {
-    if (!asset) return
-
-    const origin = typeof window !== "undefined" ? window.location.origin : ""
-    const publicUrl = `${origin}/patrimonio/${asset.patrimonyNumber}`
-
-    // QR Code
-    QRCode.toDataURL(publicUrl, {
-      width: 300,
-      margin: 1,
-      errorCorrectionLevel: "M",
-    })
-      .then((url) => setQrCodeUrl(url))
-      .catch(console.error)
-
-    // Barcode 1D (Code128)
-    if (barcodeRef.current && config.showBarcode) {
-      try {
-        JsBarcode(barcodeRef.current, asset.patrimonyNumber, {
-          format: "CODE128",
-          width: 1.5,
-          height: 28,
-          displayValue: false,
-          margin: 0,
-        })
-      } catch (err) {
-        console.error("Erro ao gerar barcode:", err)
-      }
-    }
-  }, [asset, config.showBarcode])
+  const [previewScale, setPreviewScale] = useState<number>(1)
 
   // Disparar impressão automática se solicitado pela URL
   useEffect(() => {
-    if (autoPrint && asset && qrCodeUrl) {
+    if (autoPrint && asset) {
       setTimeout(() => {
         window.print()
-      }, 500)
+      }, 600)
     }
-  }, [autoPrint, asset, qrCodeUrl])
+  }, [autoPrint, asset])
 
   // Busca de patrimônio
   const handleSearch = async (e: React.FormEvent) => {
@@ -126,18 +100,18 @@ export function EtiquetasContent({ initialAsset, autoPrint }: Props) {
           <div>
             <h1 className="page-title">Estação de Etiquetagem</h1>
             <p className="page-subtitle">
-              Gere e imprima etiquetas térmicas ou para folha A4 com QR Code oficial
+              Gere e imprima etiquetas patrimoniais com QR Code + Código de Barras 1D Code128
             </p>
           </div>
-          <div className="flex gap-2">
-            <Link href="/etiquetas/lote" className="btn-secondary">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/etiquetas/lote">
               <Button variant="outline" size="sm">
-                <Layers className="w-4 h-4" />
+                <Layers className="w-4 h-4 mr-1.5" />
                 <span>Impressão em Lote</span>
               </Button>
             </Link>
             <Button size="sm" onClick={handlePrint} disabled={!asset}>
-              <Printer className="w-4 h-4" />
+              <Printer className="w-4 h-4 mr-1.5" />
               <span>Imprimir Etiqueta</span>
             </Button>
           </div>
@@ -152,7 +126,7 @@ export function EtiquetasContent({ initialAsset, autoPrint }: Props) {
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Digite o número do patrimônio para gerar a etiqueta..."
+                  placeholder="Digite o número de patrimônio (ex: 000001, 000123) ou descrição..."
                   className="pl-10"
                 />
               </div>
@@ -162,7 +136,7 @@ export function EtiquetasContent({ initialAsset, autoPrint }: Props) {
             </form>
 
             {searchResults.length > 0 && (
-              <div className="mt-3 divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
+              <div className="mt-3 divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden bg-white">
                 {searchResults.map((item) => (
                   <div
                     key={item.id}
@@ -211,7 +185,7 @@ export function EtiquetasContent({ initialAsset, autoPrint }: Props) {
                       key={size.id}
                       className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
                         config.size === size.id
-                          ? "border-blue-500 bg-blue-50/50"
+                          ? "border-blue-500 bg-blue-50/50 shadow-sm"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
@@ -227,9 +201,12 @@ export function EtiquetasContent({ initialAsset, autoPrint }: Props) {
                         }
                         className="mt-0.5 text-blue-600 focus:ring-blue-500"
                       />
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">{size.name}</p>
-                        <p className="text-xs text-gray-500">{size.description}</p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-bold text-gray-900">{size.name}</p>
+                          {config.size === size.id && <Check className="w-4 h-4 text-blue-600" />}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5">{size.description}</p>
                       </div>
                     </label>
                   ))}
@@ -264,7 +241,22 @@ export function EtiquetasContent({ initialAsset, autoPrint }: Props) {
                     }
                     className="rounded text-blue-600 focus:ring-blue-500"
                   />
-                  <span>Exibir código de barras 1D</span>
+                  <span>Exibir código de barras 1D (Code 128)</span>
+                </label>
+
+                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={config.showQrCode}
+                    onChange={(e) =>
+                      setConfig((prev) => ({
+                        ...prev,
+                        showQrCode: e.target.checked,
+                      }))
+                    }
+                    className="rounded text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>Exibir QR Code público</span>
                 </label>
 
                 <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
@@ -289,72 +281,59 @@ export function EtiquetasContent({ initialAsset, autoPrint }: Props) {
         {/* Pré-visualização e Área de Impressão */}
         <div className="lg:col-span-2">
           <Card className="print:border-none print:shadow-none print:p-0">
-            <CardHeader className="print:hidden">
-              <CardTitle className="text-base flex items-center justify-between">
-                <span>Pré-visualização em Tempo Real</span>
-                {asset && <Badge variant="success">Pronto para imprimir</Badge>}
-              </CardTitle>
-              <CardDescription>
-                Tamanho real configurado: {LABEL_SIZES.find((s) => s.id === config.size)?.name}
-              </CardDescription>
+            <CardHeader className="print:hidden pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <span>Pré-visualização da Etiqueta</span>
+                    <Badge variant="success">Pronto para imprimir</Badge>
+                  </CardTitle>
+                  <CardDescription className="mt-0.5">
+                    Tamanho: {LABEL_SIZES.find((s) => s.id === config.size)?.name}
+                  </CardDescription>
+                </div>
+
+                {/* Controles de Zoom para visualização */}
+                <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewScale((s) => Math.max(0.75, s - 0.25))}
+                    className="p-1 hover:bg-white rounded text-gray-600"
+                    title="Diminuir zoom"
+                  >
+                    <ZoomOut className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="text-[11px] font-mono font-semibold px-1 text-gray-700">
+                    {Math.round(previewScale * 100)}%
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewScale((s) => Math.min(2, s + 0.25))}
+                    className="p-1 hover:bg-white rounded text-gray-600"
+                    title="Aumentar zoom"
+                  >
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewScale(1)}
+                    className="p-1 hover:bg-white rounded text-gray-600 ml-0.5"
+                    title="Resetar zoom"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
             </CardHeader>
 
-            <CardContent className="flex flex-col items-center justify-center p-8 bg-slate-100/50 print:bg-white print:p-0">
+            <CardContent className="flex flex-col items-center justify-center p-8 bg-slate-100/70 min-h-[300px] print:bg-white print:p-0 print:min-h-0 overflow-auto">
               {asset ? (
-                /* ETIQUETA PADRÃO DE TOMBAMENTO CIEP 395 */
-                <div
-                  id="print-label"
-                  className="bg-white border-2 border-black rounded-md p-2.5 text-black flex flex-col justify-between shadow-md print:shadow-none print:border-black print:rounded-none"
-                  style={{
-                    width: config.size === "thermal-50x30" ? "210px" : config.size === "thermal-60x40" ? "260px" : "340px",
-                    height: config.size === "thermal-50x30" ? "130px" : config.size === "thermal-60x40" ? "170px" : "190px",
-                    boxSizing: "border-box",
-                  }}
-                >
-                  {/* Cabeçalho */}
-                  {config.showSchoolName && (
-                    <div className="text-center border-b border-black pb-0.5 mb-1">
-                      <p className="text-[9px] font-black uppercase tracking-wider leading-none">
-                        {ORGANIZATION_NAME}
-                      </p>
-                      <p className="text-[7px] font-semibold text-gray-700 leading-none mt-0.5">
-                        SEEDUC-RJ • CONTROLE PATRIMONIAL
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Corpo: QR Code + Número */}
-                  <div className="flex items-center gap-2 flex-1 min-h-0">
-                    {config.showQrCode && qrCodeUrl && (
-                      <img
-                        src={qrCodeUrl}
-                        alt="QR"
-                        className="w-16 h-16 shrink-0 border border-black p-0.5"
-                      />
-                    )}
-
-                    <div className="flex-1 min-w-0 flex flex-col justify-center">
-                      <span className="text-[7px] font-bold uppercase tracking-widest text-gray-600 block">
-                        PATRIMÔNIO Nº
-                      </span>
-                      <p className="text-base font-black font-mono tracking-tight leading-tight">
-                        {asset.patrimonyNumber}
-                      </p>
-
-                      {config.showDescription && (
-                        <p className="text-[8px] font-medium line-clamp-2 leading-tight text-gray-900 mt-0.5">
-                          {asset.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Barcode inferior */}
-                  {config.showBarcode && (
-                    <div className="flex justify-center mt-1 pt-0.5 border-t border-gray-300">
-                      <svg ref={barcodeRef} className="max-h-6 w-full" />
-                    </div>
-                  )}
+                <div id="print-area" className="flex items-center justify-center">
+                  <PatrimonioLabel
+                    asset={asset}
+                    config={config}
+                    scale={previewScale}
+                  />
                 </div>
               ) : (
                 <div className="text-center py-12">
@@ -372,23 +351,32 @@ export function EtiquetasContent({ initialAsset, autoPrint }: Props) {
         </div>
       </div>
 
-      {/* Estilos específicos de impressão */}
+      {/* CSS Exclusivo de Impressão Calibrada */}
       <style jsx global>{`
         @media print {
           body * {
             visibility: hidden;
           }
-          #print-label,
-          #print-label * {
+          #print-area,
+          #print-area * {
             visibility: visible;
           }
-          #print-label {
+          #print-area {
             position: fixed;
             left: 0;
             top: 0;
             margin: 0 !important;
-            padding: 2mm !important;
+            padding: 0 !important;
+            width: auto;
+            height: auto;
+          }
+          .label-container {
+            border: 1.5pt solid black !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            transform: none !important;
             page-break-after: always;
+            break-inside: avoid;
           }
           @page {
             size: auto;
