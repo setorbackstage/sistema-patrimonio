@@ -3,7 +3,7 @@
 // ==============================================
 
 export interface LabelConfig {
-  size: "thermal-50x30" | "thermal-60x40" | "thermal-100x50" | "a4-pimaco-30"
+  size: "thermal-50x30" | "thermal-60x40" | "thermal-100x50" | "portable-40x30" | "portable-40x20" | "a4-pimaco-30"
   showSchoolName: boolean
   showDescription: boolean
   showQrCode: boolean
@@ -43,6 +43,22 @@ export const LABEL_SIZES = [
     description: "Para grandes equipamentos e placas metálicas",
     widthMm: 100,
     heightMm: 50,
+    isThermal: true,
+  },
+  {
+    id: "portable-40x30",
+    name: "Portátil Bluetooth 40mm x 30mm",
+    description: "Rolo padrão de impressoras portáteis (NIIMBOT B21/B1, Phomemo T02). Exporte como PNG e imprima pelo app.",
+    widthMm: 40,
+    heightMm: 30,
+    isThermal: true,
+  },
+  {
+    id: "portable-40x20",
+    name: "Portátil Bluetooth 40mm x 20mm",
+    description: "Etiqueta compacta para rolos de 40x20mm (NIIMBOT, Phomemo). Exporte como PNG e imprima pelo app.",
+    widthMm: 40,
+    heightMm: 20,
     isThermal: true,
   },
   {
