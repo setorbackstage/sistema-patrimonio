@@ -64,11 +64,13 @@ export function PatrimonioLabel({
     }
   }, [asset.patrimonyNumber, config.showBarcode, config.size])
 
-  // Dimensões em milímetros para cada padrão
+  // Dimensões em milímetros para cada padrão (preview ~5.6px/mm)
   const dimensionsMap: Record<string, { widthMm: string; heightMm: string; previewW: string; previewH: string }> = {
     "thermal-50x30": { widthMm: "50mm", heightMm: "30mm", previewW: "280px", previewH: "168px" },
     "thermal-60x40": { widthMm: "60mm", heightMm: "40mm", previewW: "330px", previewH: "220px" },
     "thermal-100x50": { widthMm: "100mm", heightMm: "50mm", previewW: "460px", previewH: "230px" },
+    "portable-40x30": { widthMm: "40mm", heightMm: "30mm", previewW: "224px", previewH: "168px" },
+    "portable-40x20": { widthMm: "40mm", heightMm: "20mm", previewW: "224px", previewH: "112px" },
     "a4-pimaco-30": { widthMm: "66.7mm", heightMm: "25.4mm", previewW: "320px", previewH: "122px" },
   }
 
@@ -280,7 +282,41 @@ export function PatrimonioLabel({
       )}
 
       {/* ──────────────────────────────────────────────────
-          LAYOUT 4: FOLHA A4 PIMACO (30 ETIQUETAS)
+          LAYOUT 4: PORTÁTIL BLUETOOTH 40mm x 30mm (NIIMBOT/PHOMEMO)
+          QR + nº de tombamento — otimizado pra 203dpi
+      ────────────────────────────────────────────────── */}
+      {(config.size === "portable-40x30" || config.size === "portable-40x20") && (
+        <div className="h-full flex items-center gap-1.5 text-black">
+          {config.showQrCode && qrCodeDataUrl && (
+            <img
+              src={qrCodeDataUrl}
+              alt="QR Code"
+              className={`${config.size === "portable-40x20" ? "w-12 h-12" : "w-16 h-16"} border border-black p-0.5 bg-white shrink-0 object-contain`}
+            />
+          )}
+          <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+            <span className="text-[6px] font-black uppercase tracking-wider text-black leading-none">
+              CIEP 395 • SEEDUC
+            </span>
+            <span className="text-[13px] font-black font-mono tracking-tight text-black leading-tight">
+              {asset.patrimonyNumber}
+            </span>
+            {config.showDescription && config.size === "portable-40x30" && (
+              <p className="text-[6.5px] font-semibold text-gray-900 line-clamp-2 leading-tight">
+                {asset.description}
+              </p>
+            )}
+            {config.showBarcode && (
+              <div className="w-full flex flex-col items-start">
+                <svg ref={barcodeRef} className="w-full max-h-4 object-contain" />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ──────────────────────────────────────────────────
+          LAYOUT 5: FOLHA A4 PIMACO (30 ETIQUETAS)
       ────────────────────────────────────────────────── */}
       {config.size === "a4-pimaco-30" && (
         <div className="h-full flex items-center gap-2 text-black">

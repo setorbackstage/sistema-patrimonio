@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
@@ -11,6 +11,7 @@ import {
   Filter,
   Package,
   Sliders,
+  ImageDown,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -20,6 +21,7 @@ import {
   LABEL_SIZES,
 } from "@/lib/label-templates"
 import { PatrimonioLabel } from "@/components/labels/patrimonio-label"
+import { exportLabelsAsPng } from "@/lib/export-labels"
 
 interface Asset {
   id: string
@@ -61,6 +63,31 @@ export function LoteContent({
   const [assets] = useState<Asset[]>(initialAssets)
   const [selectedIds, setSelectedIds] = useState<string[]>(initialAssets.map((a) => a.id))
   const [config, setConfig] = useState<LabelConfig>(DEFAULT_LABEL_CONFIG)
+  const [exporting, setExporting] = useState(false)
+  const gridRef = useRef<HTMLDivElement>(null)
+
+  const isPortable = config.size === "portable-40x30" || config.size === "portable-40x20"
+  const portableDims = isPortable
+    ? LABEL_SIZES.find((s) => s.id === config.size)!
+    : null
+
+  const handleExportPng = async () => {
+    if (!gridRef.current || !portableDims) return
+    setExporting(true)
+    try {
+      const nodes = Array.from(
+        gridRef.current.querySelectorAll<HTMLElement>("[data-label-asset]"),
+      )
+        .filter((el) => selectedIds.includes(el.dataset.labelAsset || ""))
+        .map((el) => ({
+          el,
+          filename: el.dataset.labelNumber || "etiqueta",
+        }))
+      await exportLabelsAsPng(nodes, portableDims.widthMm, portableDims.heightMm)
+    } finally {
+      setExporting(false)
+    }
+  }
 
   const toggleSelectAll = () => {
     if (selectedIds.length === assets.length) {
@@ -127,6 +154,18 @@ export function LoteContent({
               <Printer className="w-4 h-4 mr-1.5" />
               <span>Imprimir {selectedAssets.length} Etiquetas</span>
             </Button>
+            {isPortable && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={handleExportPng}
+                disabled={selectedAssets.length === 0 || exporting}
+                title="Gera PNGs em 203dpi para imprimir pelo app da impressora Bluetooth"
+              >
+                <ImageDown className="w-4 h-4 mr-1.5" />
+                <span>{exporting ? "Exportando..." : `Exportar ${selectedAssets.length} PNGs (203dpi)`}</span>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -193,10 +232,16 @@ export function LoteContent({
       ) : (
         <div
           id="batch-print-container"
+          ref={gridRef}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 print:grid-cols-3 print:gap-2 justify-items-center"
         >
           {selectedAssets.map((item) => (
-            <div key={item.id} className="relative group w-full flex justify-center">
+            <div
+              key={item.id}
+              data-label-asset={item.id}
+              data-label-number={item.patrimonyNumber}
+              className="relative group w-full flex justify-center"
+            >
               {/* Checkbox interativo no preview */}
               <button
                 type="button"

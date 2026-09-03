@@ -54,6 +54,11 @@ const navigation: NavItem[] = [
     icon: MapPin,
   },
   {
+    label: "Identificação em Campo",
+    href: "/identificacao",
+    icon: ClipboardCheck,
+  },
+  {
     label: "Inventário",
     icon: ClipboardCheck,
     children: [

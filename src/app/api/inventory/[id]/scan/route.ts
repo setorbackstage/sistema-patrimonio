@@ -65,6 +65,51 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const isCorrectRoom = !currentRoomId || asset.roomId === currentRoomId
     const itemStatus = isCorrectRoom ? "CONFERRED" : "DIVERGENT"
 
+    // 3. Registrar impressão/aplicação da etiqueta física (fecha o ciclo)
+    const existingLabel = await prisma.assetLabel.findFirst({
+      where: { assetId: asset.id },
+      orderBy: { generatedAt: "desc" },
+    })
+
+    if (existingLabel) {
+      // Etiqueta já gerada/impressa: ao escanear o QR físico, ela foi APLICADA
+      if (existingLabel.status !== "APPLIED") {
+        await prisma.assetLabel.update({
+          where: { id: existingLabel.id },
+          data: {
+            status: "APPLIED",
+            printedAt: existingLabel.printedAt ?? new Date(),
+            appliedAt: new Date(),
+            printedById: existingLabel.printedById ?? session.user.id,
+          },
+        })
+      }
+      if (asset.labelStatus !== "APPLIED") {
+        await prisma.asset.update({
+          where: { id: asset.id },
+          data: { labelStatus: "APPLIED" },
+        })
+      }
+    } else if (asset.labelStatus !== "APPLIED") {
+      // Nunca houve registro de etiqueta, mas o QR foi lido fisicamente:
+      // cria o registro e marca como aplicada (etiquetada fora do sistema)
+      await prisma.assetLabel.create({
+        data: {
+          assetId: asset.id,
+          labelCode: asset.patrimonyNumber,
+          status: "APPLIED",
+          printedAt: new Date(),
+          appliedAt: new Date(),
+          printedById: session.user.id,
+          notes: "Aplicada e confirmada via leitura de QR no inventário",
+        },
+      })
+      await prisma.asset.update({
+        where: { id: asset.id },
+        data: { labelStatus: "APPLIED" },
+      })
+    }
+
     if (item) {
       // Atualizar item existente
       item = await prisma.inventoryItem.update({
