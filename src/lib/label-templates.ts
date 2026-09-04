@@ -3,7 +3,7 @@
 // ==============================================
 
 export interface LabelConfig {
-  size: "thermal-58x40" | "thermal-50x30" | "thermal-60x40" | "thermal-100x50" | "portable-40x30" | "portable-40x20" | "a4-pimaco-30"
+  size: "pt260-48x30" | "thermal-58x40" | "thermal-50x30" | "thermal-60x40" | "thermal-100x50" | "portable-40x30" | "portable-40x20" | "a4-pimaco-30"
   showSchoolName: boolean
   showDescription: boolean
   showQrCode: boolean
@@ -21,6 +21,14 @@ export const DEFAULT_LABEL_CONFIG: LabelConfig = {
 }
 
 export const LABEL_SIZES = [
+  {
+    id: "pt260-48x30",
+    name: "PT-260 / BaiHuo 48mm x 30mm (USB no PC)",
+    description: "Largura exata da cabeça da PT-260 (48mm) — não corta QR nem código de barras. Use com etiquetas 58x40 ou 50x30.",
+    widthMm: 48,
+    heightMm: 30,
+    isThermal: true,
+  },
   {
     id: "thermal-58x40",
     name: "Térmica 58mm x 40mm (BaiHuo / rolos 58mm)",

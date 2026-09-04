@@ -66,7 +66,7 @@ export function LoteContent({
   const [exporting, setExporting] = useState(false)
   const gridRef = useRef<HTMLDivElement>(null)
 
-  const isPortable = config.size === "portable-40x30" || config.size === "portable-40x20"
+  const isPortable = config.size === "portable-40x30" || config.size === "portable-40x20" || config.size === "pt260-48x30"
   const portableDims = isPortable
     ? LABEL_SIZES.find((s) => s.id === config.size)!
     : null
@@ -266,7 +266,7 @@ export function LoteContent({
       <style jsx global>{`
         @media print {
           @page {
-            size: ${config.size === "a4-pimaco-30" ? "A4" : config.size === "thermal-58x40" ? "58mm 40mm" : config.size === "thermal-50x30" ? "50mm 30mm" : config.size === "thermal-60x40" ? "60mm 40mm" : config.size === "thermal-100x50" ? "100mm 50mm" : config.size === "portable-40x30" ? "40mm 30mm" : config.size === "portable-40x20" ? "40mm 20mm" : "auto"};
+            size: ${config.size === "a4-pimaco-30" ? "A4" : config.size === "pt260-48x30" ? "48mm 30mm" : config.size === "thermal-58x40" ? "58mm 40mm" : config.size === "thermal-50x30" ? "50mm 30mm" : config.size === "thermal-60x40" ? "60mm 40mm" : config.size === "thermal-100x50" ? "100mm 50mm" : config.size === "portable-40x30" ? "40mm 30mm" : config.size === "portable-40x20" ? "40mm 20mm" : "auto"};
             margin: ${config.size === "a4-pimaco-30" ? "10mm 5mm" : "0mm"};
           }
           body {

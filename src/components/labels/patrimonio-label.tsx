@@ -48,7 +48,7 @@ export function PatrimonioLabel({
   useEffect(() => {
     if (barcodeRef.current && config.showBarcode) {
       try {
-        const isSmall = config.size === "thermal-50x30" || config.size === "a4-pimaco-30"
+        const isSmall = config.size === "thermal-50x30" || config.size === "a4-pimaco-30" || config.size === "pt260-48x30"
         JsBarcode(barcodeRef.current, asset.patrimonyNumber, {
           format: "CODE128",
           width: isSmall ? 1.1 : 1.4,
@@ -66,6 +66,7 @@ export function PatrimonioLabel({
 
   // Dimensões em milímetros para cada padrão (preview ~5.6px/mm)
   const dimensionsMap: Record<string, { widthMm: string; heightMm: string; previewW: string; previewH: string }> = {
+    "pt260-48x30": { widthMm: "48mm", heightMm: "30mm", previewW: "269px", previewH: "168px" },
     "thermal-58x40": { widthMm: "58mm", heightMm: "40mm", previewW: "325px", previewH: "224px" },
     "thermal-50x30": { widthMm: "50mm", heightMm: "30mm", previewW: "280px", previewH: "168px" },
     "thermal-60x40": { widthMm: "60mm", heightMm: "40mm", previewW: "330px", previewH: "220px" },
@@ -88,6 +89,52 @@ export function PatrimonioLabel({
         transformOrigin: "top center",
       }}
     >
+      {/* ──────────────────────────────────────────────────
+          LAYOUT PT260: 48mm x 30mm — largura útil da PT-260/BaiHuo
+          QR + nº + descrição compacta, sem cortar bordas
+      ────────────────────────────────────────────────── */}
+      {config.size === "pt260-48x30" && (
+        <div className="h-full flex flex-col justify-between text-black">
+          {config.showSchoolName && (
+            <div className="flex items-center justify-between border-b border-black pb-0.5 mb-0.5 leading-none">
+              <span className="text-[7.5px] font-black uppercase tracking-wide text-black">
+                CIEP 395 • SEEDUC-RJ
+              </span>
+            </div>
+          )}
+          <div className="flex items-center gap-1.5 flex-1 min-h-0">
+            {config.showQrCode && qrCodeDataUrl && (
+              <img
+                src={qrCodeDataUrl}
+                alt="QR Code"
+                className="w-[58px] h-[58px] border border-black p-0.5 bg-white object-contain shrink-0"
+              />
+            )}
+            <div className="flex-1 min-w-0 flex flex-col justify-center">
+              <span className="text-[6px] font-bold uppercase tracking-widest text-gray-600 block leading-none">
+                PATRIMÔNIO Nº
+              </span>
+              <span className="text-[15px] font-black font-mono tracking-tight text-black block leading-tight">
+                {asset.patrimonyNumber}
+              </span>
+              {config.showDescription && (
+                <p className="text-[7px] font-semibold text-gray-900 line-clamp-2 leading-tight mt-0.5">
+                  {asset.description}
+                </p>
+              )}
+            </div>
+          </div>
+          {config.showBarcode && (
+            <div className="w-full flex flex-col items-center">
+              <svg ref={barcodeRef} className="w-full max-h-[16px] object-contain" />
+              <span className="text-[6px] font-mono font-bold tracking-widest text-gray-800 leading-none">
+                *{asset.patrimonyNumber}*
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ──────────────────────────────────────────────────
           LAYOUT 0: TÉRMICA 58mm x 40mm (BaiHuo / rolos 58mm)
           QR + nº + descrição + sala + barcode, 1 por linha
