@@ -17,6 +17,18 @@ interface AssetLabelProps {
   scale?: number
 }
 
+// Dimensões de preview por formato (~5.6px/mm na tela; impressão usa escala própria)
+export const LABEL_PREVIEW_DIMS: Record<string, { widthMm: string; heightMm: string; previewW: string; previewH: string }> = {
+  "pt260-48x30": { widthMm: "48mm", heightMm: "30mm", previewW: "269px", previewH: "168px" },
+  "thermal-58x40": { widthMm: "58mm", heightMm: "40mm", previewW: "325px", previewH: "224px" },
+  "thermal-50x30": { widthMm: "50mm", heightMm: "30mm", previewW: "280px", previewH: "168px" },
+  "thermal-60x40": { widthMm: "60mm", heightMm: "40mm", previewW: "330px", previewH: "220px" },
+  "thermal-100x50": { widthMm: "100mm", heightMm: "50mm", previewW: "460px", previewH: "230px" },
+  "portable-40x30": { widthMm: "40mm", heightMm: "30mm", previewW: "224px", previewH: "168px" },
+  "portable-40x20": { widthMm: "40mm", heightMm: "20mm", previewW: "224px", previewH: "112px" },
+  "a4-pimaco-30": { widthMm: "66.7mm", heightMm: "25.4mm", previewW: "320px", previewH: "122px" },
+}
+
 export function PatrimonioLabel({
   asset,
   config,
@@ -65,16 +77,7 @@ export function PatrimonioLabel({
   }, [asset.patrimonyNumber, config.showBarcode, config.size])
 
   // Dimensões em milímetros para cada padrão (preview ~5.6px/mm)
-  const dimensionsMap: Record<string, { widthMm: string; heightMm: string; previewW: string; previewH: string }> = {
-    "pt260-48x30": { widthMm: "48mm", heightMm: "30mm", previewW: "269px", previewH: "168px" },
-    "thermal-58x40": { widthMm: "58mm", heightMm: "40mm", previewW: "325px", previewH: "224px" },
-    "thermal-50x30": { widthMm: "50mm", heightMm: "30mm", previewW: "280px", previewH: "168px" },
-    "thermal-60x40": { widthMm: "60mm", heightMm: "40mm", previewW: "330px", previewH: "220px" },
-    "thermal-100x50": { widthMm: "100mm", heightMm: "50mm", previewW: "460px", previewH: "230px" },
-    "portable-40x30": { widthMm: "40mm", heightMm: "30mm", previewW: "224px", previewH: "168px" },
-    "portable-40x20": { widthMm: "40mm", heightMm: "20mm", previewW: "224px", previewH: "112px" },
-    "a4-pimaco-30": { widthMm: "66.7mm", heightMm: "25.4mm", previewW: "320px", previewH: "122px" },
-  }
+  const dimensionsMap = LABEL_PREVIEW_DIMS
 
   const dim = dimensionsMap[config.size] || dimensionsMap["thermal-50x30"]
 

@@ -291,11 +291,23 @@ export function LoteContent({
             margin: 0 !important;
           }
           .label-container {
+            zoom: ${(() => {
+              const dims: Record<string, [number, number]> = {
+                "pt260-48x30": [48, 269], "thermal-58x40": [58, 325], "thermal-50x30": [50, 280],
+                "thermal-60x40": [60, 330], "thermal-100x50": [100, 460], "portable-40x30": [40, 224],
+                "portable-40x20": [40, 224], "a4-pimaco-30": [66.7, 320],
+              }
+              const d = dims[config.size]
+              return d ? (d[0] / 25.4 * 96 / d[1]).toFixed(4) : "1"
+            })()};
             break-inside: avoid !important;
             page-break-inside: avoid !important;
             ${config.size === "a4-pimaco-30" ? "" : "page-break-after: always;"}
             border: 1.5pt solid black !important;
             box-shadow: none !important;
+          }
+          .label-container:last-child {
+            page-break-after: auto !important;
           }
         }
       `}</style>
