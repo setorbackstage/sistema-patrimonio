@@ -266,7 +266,7 @@ export function LoteContent({
       <style jsx global>{`
         @media print {
           @page {
-            size: ${config.size === "a4-pimaco-30" ? "A4" : "auto"};
+            size: ${config.size === "a4-pimaco-30" ? "A4" : config.size === "thermal-58x40" ? "58mm 40mm" : config.size === "thermal-50x30" ? "50mm 30mm" : config.size === "thermal-60x40" ? "60mm 40mm" : config.size === "thermal-100x50" ? "100mm 50mm" : config.size === "portable-40x30" ? "40mm 30mm" : config.size === "portable-40x20" ? "40mm 20mm" : "auto"};
             margin: ${config.size === "a4-pimaco-30" ? "10mm 5mm" : "0mm"};
           }
           body {
@@ -285,14 +285,15 @@ export function LoteContent({
             top: 0;
             width: 100%;
             display: grid !important;
-            grid-template-columns: repeat(3, 1fr) !important;
-            gap: 2mm !important;
+            grid-template-columns: ${config.size === "a4-pimaco-30" ? "repeat(3, 1fr)" : "1fr"} !important;
+            gap: ${config.size === "a4-pimaco-30" ? "2mm" : "0"} !important;
             padding: 0 !important;
             margin: 0 !important;
           }
           .label-container {
             break-inside: avoid !important;
             page-break-inside: avoid !important;
+            ${config.size === "a4-pimaco-30" ? "" : "page-break-after: always;"}
             border: 1.5pt solid black !important;
             box-shadow: none !important;
           }

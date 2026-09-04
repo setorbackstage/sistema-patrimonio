@@ -3,7 +3,7 @@
 // ==============================================
 
 export interface LabelConfig {
-  size: "thermal-50x30" | "thermal-60x40" | "thermal-100x50" | "portable-40x30" | "portable-40x20" | "a4-pimaco-30"
+  size: "thermal-58x40" | "thermal-50x30" | "thermal-60x40" | "thermal-100x50" | "portable-40x30" | "portable-40x20" | "a4-pimaco-30"
   showSchoolName: boolean
   showDescription: boolean
   showQrCode: boolean
@@ -21,6 +21,14 @@ export const DEFAULT_LABEL_CONFIG: LabelConfig = {
 }
 
 export const LABEL_SIZES = [
+  {
+    id: "thermal-58x40",
+    name: "Térmica 58mm x 40mm (BaiHuo / rolos 58mm)",
+    description: "Padrão de impressoras térmicas de 58mm (BaiHuo MY-7565, Goojprt, Xprinter). 1 etiqueta por linha.",
+    widthMm: 58,
+    heightMm: 40,
+    isThermal: true,
+  },
   {
     id: "thermal-50x30",
     name: "Térmica 50mm x 30mm (Padrão)",

@@ -66,6 +66,7 @@ export function PatrimonioLabel({
 
   // Dimensões em milímetros para cada padrão (preview ~5.6px/mm)
   const dimensionsMap: Record<string, { widthMm: string; heightMm: string; previewW: string; previewH: string }> = {
+    "thermal-58x40": { widthMm: "58mm", heightMm: "40mm", previewW: "325px", previewH: "224px" },
     "thermal-50x30": { widthMm: "50mm", heightMm: "30mm", previewW: "280px", previewH: "168px" },
     "thermal-60x40": { widthMm: "60mm", heightMm: "40mm", previewW: "330px", previewH: "220px" },
     "thermal-100x50": { widthMm: "100mm", heightMm: "50mm", previewW: "460px", previewH: "230px" },
@@ -87,6 +88,62 @@ export function PatrimonioLabel({
         transformOrigin: "top center",
       }}
     >
+      {/* ──────────────────────────────────────────────────
+          LAYOUT 0: TÉRMICA 58mm x 40mm (BaiHuo / rolos 58mm)
+          QR + nº + descrição + sala + barcode, 1 por linha
+      ────────────────────────────────────────────────── */}
+      {config.size === "thermal-58x40" && (
+        <div className="h-full flex flex-col justify-between text-black">
+          {config.showSchoolName && (
+            <div className="flex items-center justify-between border-b border-black pb-0.5 mb-1 leading-none">
+              <span className="text-[9px] font-black uppercase tracking-wider text-black">
+                CIEP 395 • SEEDUC-RJ
+              </span>
+              <span className="text-[7.5px] font-bold text-gray-700 uppercase">
+                U.A. 180866
+              </span>
+            </div>
+          )}
+          <div className="flex items-center gap-2.5 flex-1 min-h-0">
+            {config.showQrCode && qrCodeDataUrl && (
+              <div className="shrink-0 flex flex-col items-center">
+                <img
+                  src={qrCodeDataUrl}
+                  alt="QR Code"
+                  className="w-[74px] h-[74px] border border-black p-0.5 bg-white object-contain"
+                />
+              </div>
+            )}
+            <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+              <span className="text-[7.5px] font-bold uppercase tracking-widest text-gray-600 block leading-none">
+                PATRIMÔNIO Nº
+              </span>
+              <span className="text-lg font-black font-mono tracking-tight text-black block leading-tight">
+                {asset.patrimonyNumber}
+              </span>
+              {config.showDescription && (
+                <p className="text-[8.5px] font-semibold text-gray-900 line-clamp-2 leading-tight mt-0.5">
+                  {asset.description}
+                </p>
+              )}
+              {asset.room && (
+                <p className="text-[8px] font-bold text-black mt-0.5 truncate">
+                  SALA: {asset.room.name}
+                </p>
+              )}
+            </div>
+          </div>
+          {config.showBarcode && (
+            <div className="w-full flex flex-col items-center pt-0.5 mt-0.5 border-t border-gray-400">
+              <svg ref={barcodeRef} className="w-full max-h-5 object-contain" />
+              <span className="text-[7px] font-mono font-bold tracking-widest text-gray-800 leading-none">
+                *{asset.patrimonyNumber}*
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ──────────────────────────────────────────────────
           LAYOUT 1: TÉRMICA 50mm x 30mm (PADRÃO SEEDUC)
           Layout em 2 colunas para máximo aproveitamento
