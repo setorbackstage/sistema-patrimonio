@@ -38,14 +38,12 @@ Sistema Web Completo de **Gestão, Inventário, Etiquetagem e Localização Fís
 
 ---
 
-## 🔑 Credenciais Pré-configuradas
+## 🔑 Credenciais de Acesso
 
-| Usuário | Email de Acesso | Senha | Função |
-|---|---|---|---|
-| **Diogo Peçanha (Criador / Admin)** | `setorbackstage@gmail.com` | `02122024Dn@` | `ADMIN` (Acesso Total) |
-| **Diretoria Geral (CIEP 395)** | `diretoria@ciep395.edu.br` | `ciep395diretoria` | `ADMIN` (Acesso Total) |
-| **Administrador TI** | `admin@ciep395.edu.br` | `admin123` | `ADMIN` |
-| **Agente de Patrimônio** | `operador@ciep395.edu.br` | `operador123` | `OPERATOR` |
+> ⚠️ **Removidas deste arquivo por segurança** (repositório público).
+> As credenciais de cada perfil são definidas no seed (`prisma/seed.ts`) e
+> devem ser alteradas no primeiro acesso por cada usuário. Contate o
+> administrador do sistema para obter as credenciais atuais.
 
 ---
 

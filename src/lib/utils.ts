@@ -30,6 +30,9 @@ export function formatDateTime(date: Date | string): string {
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    // Timezone fixo: servidor (UTC) e cliente (-03) devem renderizar a MESMA
+    // string, senão o React hidrata com texto diferente e lança erro #418.
+    timeZone: 'America/Sao_Paulo',
   }).format(d)
 }
 

@@ -166,7 +166,7 @@ export function RelatoriosContent({
           INVENTÁRIO DAS EXISTÊNCIAS FÍSICAS — ANEXO IV (IN 41/2017)
         </p>
         <p className="text-xs text-gray-500 mt-1">
-          Emissão em: {new Date().toLocaleDateString("pt-BR")} • Total: {totalAssets} itens ({formatCurrency(totalValue)})
+          Emissão em: {new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })} • Total: {totalAssets} itens ({formatCurrency(totalValue)})
         </p>
       </div>
 

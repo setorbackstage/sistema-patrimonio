@@ -191,7 +191,7 @@ export function UsuariosContent({ users }: { users: User[] }) {
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900">{user.name}</p>
-                          <p className="text-[10px] text-gray-500">Cadastrado em {new Date(user.createdAt).toLocaleDateString("pt-BR")}</p>
+                          <p className="text-[10px] text-gray-500">Cadastrado em {new Date(user.createdAt).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}</p>
                         </div>
                       </div>
                     </td>
