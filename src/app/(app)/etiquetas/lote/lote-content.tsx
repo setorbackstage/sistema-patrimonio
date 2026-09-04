@@ -51,6 +51,7 @@ interface Props {
   categories: Category[]
   selectedRoomId: string
   selectedFilter: string
+  truncated?: boolean
 }
 
 export function LoteContent({
@@ -58,6 +59,7 @@ export function LoteContent({
   rooms,
   selectedRoomId,
   selectedFilter,
+  truncated = false,
 }: Props) {
   const router = useRouter()
   const [assets] = useState<Asset[]>(initialAssets)
@@ -170,6 +172,11 @@ export function LoteContent({
         </div>
 
         {/* Filtros e Seleção de Formato */}
+        {truncated && (
+          <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-800">
+            ⚠️ Esta escola tem mais de 500 bens — exibindo os 500 primeiros. Refine por sala para imprimir o restante.
+          </div>
+        )}
         <Card className="mb-6">
           <CardContent className="p-4 flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-3">
@@ -180,7 +187,7 @@ export function LoteContent({
 
               <select
                 value={selectedRoomId}
-                onChange={(e) => router.push(`/etiquetas/lote?roomId=${e.target.value}`)}
+                onChange={(e) => router.push(`/etiquetas/lote?roomId=${e.target.value}${selectedFilter ? `&filter=${selectedFilter}` : ""}`)}
                 className="h-9 px-3 rounded-lg border border-gray-300 bg-white text-xs text-gray-700 focus:border-blue-500"
               >
                 <option value="">Todas as salas</option>
@@ -191,9 +198,15 @@ export function LoteContent({
                 ))}
               </select>
 
-              <Link href="/etiquetas/lote?filter=sem-etiqueta">
+              <Link href={`/etiquetas/lote?filter=sem-etiqueta${selectedRoomId ? `&roomId=${selectedRoomId}` : ""}`}>
                 <Button variant={selectedFilter === "sem-etiqueta" ? "default" : "outline"} size="sm">
                   Apenas sem etiqueta impressa
+                </Button>
+              </Link>
+
+              <Link href={`/etiquetas/lote?filter=sem-localizacao${selectedRoomId ? `&roomId=${selectedRoomId}` : ""}`}>
+                <Button variant={selectedFilter === "sem-localizacao" ? "default" : "outline"} size="sm">
+                  Apenas sem localização
                 </Button>
               </Link>
             </div>

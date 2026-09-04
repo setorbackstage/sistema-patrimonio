@@ -19,6 +19,7 @@ export default async function EtiquetasLotePage({ searchParams }: PageProps) {
   const where: Record<string, unknown> = { deletedAt: null }
   if (roomId) where.roomId = roomId
   if (filter === "sem-etiqueta") where.labelStatus = "NOT_GENERATED"
+  if (filter === "sem-localizacao") where.roomId = null
 
   const [assets, rooms, categories] = await Promise.all([
     prisma.asset.findMany({
@@ -36,7 +37,7 @@ export default async function EtiquetasLotePage({ searchParams }: PageProps) {
         },
       },
       orderBy: { patrimonyNumber: "asc" },
-      take: 200, // Limite para lote
+      take: 501, // Limite para lote (+1 para detectar estouro)
     }),
     prisma.room.findMany({
       include: {
@@ -53,13 +54,17 @@ export default async function EtiquetasLotePage({ searchParams }: PageProps) {
     }),
   ])
 
+  const truncated = assets.length > 500
+  const visibleAssets = truncated ? assets.slice(0, 500) : assets
+
   return (
     <LoteContent
-      initialAssets={JSON.parse(JSON.stringify(assets))}
+      initialAssets={JSON.parse(JSON.stringify(visibleAssets))}
       rooms={rooms}
       categories={categories}
       selectedRoomId={roomId}
       selectedFilter={filter}
+      truncated={truncated}
     />
   )
 }
