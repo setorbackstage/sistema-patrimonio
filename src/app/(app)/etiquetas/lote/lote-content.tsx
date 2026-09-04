@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
@@ -62,8 +62,13 @@ export function LoteContent({
   truncated = false,
 }: Props) {
   const router = useRouter()
-  const [assets] = useState<Asset[]>(initialAssets)
+  // NÃO copiar initialAssets para useState: navegações client-side (router.push)
+  // reaproveitam o componente e o estado ficaria velho (filtro de sala não aplicava).
+  const assets = initialAssets
   const [selectedIds, setSelectedIds] = useState<string[]>(initialAssets.map((a) => a.id))
+  useEffect(() => {
+    setSelectedIds(assets.map((a) => a.id))
+  }, [assets])
   const [config, setConfig] = useState<LabelConfig>(DEFAULT_LABEL_CONFIG)
   const [exporting, setExporting] = useState(false)
   const gridRef = useRef<HTMLDivElement>(null)
